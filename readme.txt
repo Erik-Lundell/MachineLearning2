@@ -1,5 +1,10 @@
 // For writing done thoughts about the exercise
 
+Questions:
+    - What is the actual model in Ridge regression, linear? polynomial of some degree?
+    - Stopping condition in Ridge?
+    - Some decisions, see below...
+
 Tasks:
 
 1. Pick 3 data sets
