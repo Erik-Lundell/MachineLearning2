@@ -1,8 +1,9 @@
 // For writing done thoughts about the exercise
 
 Questions:
-    - What is the actual model in Ridge regression, linear? polynomial of some degree?
-    - Stopping condition in Ridge?
+    - What is the actual model in Ridge regression, linear? polynomial of some degree? (linear now)
+    - Stopping condition in Ridge? (handled with three diffrent now)
+    - Should bias be handled in RidgeRegression? Or do we just assume data to have mean=0 (if that even works)
     - Some decisions, see below...
 
 Tasks:
