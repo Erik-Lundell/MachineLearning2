@@ -70,3 +70,11 @@ def kNN(x1, k, norm = L2, weighting = mean_weighting):
         y = y + neigh[1]*weighting(neigh[0], k)/ total_weight 
     
     return y
+
+### do kNN for vector of X, return predicted values
+def kNNVector(x, k, norm = L2, weighting = mean_weighting):
+    y_pred = []
+    for row in x:
+        y_pred.append(kNN(row,k,norm,weighting))
+    
+    return y_pred

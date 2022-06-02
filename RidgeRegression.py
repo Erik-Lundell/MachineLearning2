@@ -26,6 +26,15 @@ def RSS(x,y):
         
     return rss_sum
 
+def meanResidual(x,y):
+    residual_sum = 0
+    for i, x1 in enumerate(x):
+        y_est = regress(x1)
+        residual = y[i] - y_est
+        residual_sum = residual_sum + np.sqrt(residual*residual)
+        
+    return residual_sum/len(y)
+
 #Calculate partial derivative of RSS with respect to weight _w[i_w]
 def pd_RSS(x,y, i_w):
     pd_rss_sum = 0
@@ -57,7 +66,7 @@ def grad_descent_iteration(x,y, lambda_parameter, learning_rate):
     _w = new_w
 
 # Fits the model using RidgeRegression. Stops when cost_function  
-def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights = None, max_iter = 200, weight_threshold = 0.01):
+def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights = None, max_iter = 200, weight_threshold = 0.01, quiet = False):
     global _w
     #Initialize weights
     if(initial_weights is None):
@@ -68,6 +77,8 @@ def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights 
         _w = initial_weights
         
     old_cost = cost_function(x,y, lambda_parameter)
+    print(f"Initial cost:{old_cost:.2f}")
+ 
     iter_counter = 0
     while(True):
         iter_counter = iter_counter + 1
@@ -77,7 +88,9 @@ def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights 
         improvement_absolute = old_cost-new_cost
         improvement_relative = improvement_absolute/old_cost
         
-        print(f"Iteration {iter_counter}: cost = {new_cost:.2f} (improvement: {improvement_relative*100:.2f}%).")
+        if(iter_counter<5 or iter_counter%10==0):
+            if(not quiet):
+                print(f"Iteration {iter_counter}: cost = {new_cost:.2f} (improvement: {improvement_relative*100:.2f}%).")
         
         #Stopping condition 1. Cost got worse
         if(new_cost > old_cost):
@@ -95,15 +108,28 @@ def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights 
             break
             
         old_cost = new_cost
+      
+    if(not quiet):
+        print("")
         
     #Remove features with too little influence
     counter =  0
     for i in range(len(_w)):
-        if(_w[i]<=weight_threshold):
+        if(np.abs(_w[i])<=weight_threshold):
             counter = counter + 1
             _w[i] = 0
-    if(counter>0):
+    if(counter>0 and not quiet):
         print(f"Removed {counter} features due to low weight.")
         
-    print("Final weights: " + str(_w))
+    #Compute some metrics
+    finalRSS =RSS(x,y)
+    finalCost = cost_function(x,y, lambda_parameter)
+    finalMeanResidual = meanResidual(x,y)
+    diffY = np.max(y)-np.min(y)
     
+    #Report
+    if(not quiet):
+        print("Final weights: " + str(_w))
+        print("L2-norm of weights: " + str(np.sqrt(np.inner(_w,_w))))
+        print(f"RSS split of cost: {finalRSS/finalCost*100:.2f}%")
+        print(f"Mean residual: {finalMeanResidual}, compare to difference between max and min y: {diffY}")

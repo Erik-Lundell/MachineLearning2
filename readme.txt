@@ -5,12 +5,13 @@ Questions:
     - Stopping condition in Ridge? (handled with three diffrent now)
     - Should bias be handled in RidgeRegression? Or do we just assume data to have mean=0 (if that even works)
     - Some decisions, see below...
+    - How to process data in math data-set
 
 Tasks:
 
 1. Pick 3 data sets
     a) Math dataset from ex0
-    b) ...
+    b) Energy efficiency: straight forward, 768 instances with 8 features, 2 values to predict. No missing values.
     c) ...
 2. Implement ridge regression gradient descent
 3. Implement k-nn for regression
@@ -18,11 +19,12 @@ Tasks:
     Do not use same test set for different tests
     
 using CROSS-VALIDATION, two performance metrics
-    a) RSM
-    b) ...
+    a) sklearn score 1-u/v  (sum of squared residuals / sum of squared y deviation from mean)
+    b) Mean of residuals sum(|e|)/n
+    
 4. Compare performance with existing implementations (defualt parameters ok)
 5. Compare performance with 2 regression techniques:
-    a) Regression trees
+    a) ...?
     b) ...
     
 Conclusions
