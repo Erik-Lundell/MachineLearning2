@@ -15,6 +15,8 @@ def L1(x1, x2):
 def L_inf():
     return np.max(x1-x2)
 
+distance_functions = [L1, L2, L_inf]
+
 def mean_weighting(dist, k):
     return 1
 
@@ -78,3 +80,44 @@ def kNNVector(x, k, norm = L2, weighting = mean_weighting):
         y_pred.append(kNN(row,k,norm,weighting))
     
     return y_pred
+
+### Find best k and distance function
+# Brute force: just try all combinations
+# Each test performed with cross-evaluatoin but with different samples
+def metaKNN(x, y, min_k = 1, max_k = 10):
+    for k in range(min_k, max_k):
+        for distance in distance_functions:
+            
+            #perform test
+            
+            #if score is better, update best k and distance.
+            best_k = k
+            best_distance = distance
+    
+    
+    best_k = 0
+    best_distance = L2
+    
+    return best_k, best_distance
+
+### Calculate various metrics: 
+#  score = 1 - u/w used by scipy
+#  RMS 
+#  average absolute of residuals
+#  max residual
+def report(x, y, k, norm = L2, weighting = mean_weighting):
+    y_reg = kNNVector(x,k,norm, weighting)
+    
+    residuals = y - y_reg
+    
+    u = np.inner(residuals, residuals)
+    w = np.inner(y,y)
+    
+    score = 1 - u/w
+    RMS = np.sqrt(u)
+    meanResidual = np.sum(np.abs(residuals)) / len(y)
+    maxRes = np.max(residuals)
+    
+    return score, RMS, meanResidual, maxRes
+
+    
