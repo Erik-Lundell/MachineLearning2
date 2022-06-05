@@ -19,8 +19,8 @@ Tasks:
     Do not use same test set for different tests
     
 using CROSS-VALIDATION, two performance metrics
-    a) sklearn score 1-u/v  (sum of squared residuals / sum of squared y deviation from mean)
-    b) Mean of residuals sum(|e|)/n
+    a) R2: sklearn score 1-u/v  (sum of squared residuals / sum of squared y deviation from mean)
+    b) Mean squared Error
     
 4. Compare performance with existing implementations (defualt parameters ok)
 5. Compare performance with 2 regression techniques:
