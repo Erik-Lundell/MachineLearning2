@@ -10,6 +10,15 @@ def regress(x1):
     #Return regression with current model
     #Just linear??
     return np.inner(_w, x1)
+
+
+#Calculate the actual regression at point x1
+def regress_all(X):
+    predictions=[]
+    #Return regression with current model
+    for x1 in X:
+        predictions.append(regress(x1))
+    return predictions
     
 
 #Calculate the partial derivative of the regression at point x1 with respect to weight

@@ -24,7 +24,7 @@ using CROSS-VALIDATION, two performance metrics
     
 4. Compare performance with existing implementations (defualt parameters ok)
 5. Compare performance with 2 regression techniques:
-    a) ...?
+    a) Random Forest
     b) ...
     
 Conclusions
