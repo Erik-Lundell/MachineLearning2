@@ -1,6 +1,9 @@
 import numpy as np
 from collections import deque
 import math
+import random
+
+from sklearn.model_selection import KFold
 
 _x = None
 _y = None
@@ -12,10 +15,17 @@ def L2(x1, x2):
 def L1(x1, x2):
     return np.sum(np.abs(x1-x2))
 
-def L_inf():
-    return np.max(x1-x2)
+def L_inf(x1, x2):
+    d = np.abs(np.max(x1-x2))
+    if(d==0):
+        d = 0.000001
+    return d
 
-distance_functions = [L1, L2, L_inf]
+distance_functions = {
+    'L1': L1, 
+    'L2': L2,
+    'L_inf' : L_inf
+}
 
 def mean_weighting(dist, k):
     return 1
@@ -84,21 +94,52 @@ def kNNVector(x, k, norm = L2, weighting = mean_weighting):
 ### Find best k and distance function
 # Brute force: just try all combinations
 # Each test performed with cross-evaluatoin but with different samples
-def metaKNN(x, y, min_k = 1, max_k = 10):
-    for k in range(min_k, max_k):
-        for distance in distance_functions:
-            
-            #perform test
-            
-            #if score is better, update best k and distance.
-            best_k = k
-            best_distance = distance
+def metaKNN(x, y, min_k = 1, max_k = 10, folds = 5):
     
+    #initialize pseudonumber generator with some seed each time to get consistent results.
+    random.seed(27)
     
     best_k = 0
-    best_distance = L2
+    best_distance = None
+    bestRMS = np.Inf
     
-    return best_k, best_distance
+    num_k = max_k - min_k + 1
+    save_RMS = {
+    'L1':num_k*[0],
+    'L2':num_k*[0],
+    'L_inf':num_k*[0]
+    }
+    
+    for k in range(min_k, max_k+1):
+        print("Testing k = " + str(k))
+        for distanceKey in distance_functions.keys():
+            distance = distance_functions[distanceKey]
+            
+            #perform test
+            cv=KFold(n_splits=folds, shuffle=True, random_state=random.randint(1,1000))
+
+            total_RMS = 0
+            for train_index, test_index in cv.split(x):
+                X_train, X_test = x[train_index], x[test_index]
+                Y_train, Y_test = y[train_index], y[test_index]
+            
+                fit(X_train, Y_train)
+                
+                score, RMS, meanResidual, maxRes = report(X_test, Y_test, k, distance, distance_weighting)
+                
+                total_RMS = total_RMS + RMS
+                
+            save_RMS[distanceKey][k-min_k] = total_RMS/folds
+            
+            #if score is better, update best k and distance.
+            if(total_RMS < bestRMS):
+                best_k = k
+                best_distance = distanceKey
+                bestRMS = total_RMS
+    
+    print(f"Best k is {best_k}, best distance_function is {best_distance}")
+    
+    return save_RMS
 
 ### Calculate various metrics: 
 #  score = 1 - u/w used by scipy
