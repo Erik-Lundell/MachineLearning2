@@ -16,10 +16,16 @@ import RidgeRegression as OurRidge
 
 from sklearn.model_selection import KFold
 
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 #
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+from sklearn.svm import SVR
 
 ##### Dataset 1: Wikipedia maths
 '''Json structure:
@@ -119,6 +125,9 @@ if False:
     our_mse = mean_squared_error(pred_df["our_prediction"],pred_df["actual"])
     skl_mse =mean_squared_error(pred_df["sklearn_prediction"],pred_df["actual"])
     
+    our_r2 = r2_score(pred_df["our_prediction"],pred_df["actual"])
+    skl_r2 =r2_score(pred_df["sklearn_prediction"],pred_df["actual"])
+    
     pred_df["our_dif"]=pred_df["actual"]-pred_df["our_prediction"]
     pred_df["skl_dif"]=pred_df["actual"]-pred_df["sklearn_prediction"]
     
@@ -152,7 +161,7 @@ if False:
 
     
 # Perform cross validation KNN
-if True:
+if False:
     our_time=[]
     skl_time=[]
 
@@ -187,6 +196,9 @@ if True:
     our_mse = mean_squared_error(pred_df["our_prediction"],pred_df["actual"])
     skl_mse =mean_squared_error(pred_df["sklearn_prediction"],pred_df["actual"])
     
+    our_r2 = r2_score(pred_df["our_prediction"],pred_df["actual"])
+    skl_r2 =r2_score(pred_df["sklearn_prediction"],pred_df["actual"])
+    
     pred_df["our_dif"]=pred_df["actual"]-pred_df["our_prediction"]
     pred_df["skl_dif"]=pred_df["actual"]-pred_df["sklearn_prediction"]
     
@@ -215,6 +227,105 @@ if True:
     plt.ylabel('Observations')
     
     plt.figure()
+    
+    
+    
+# Perform cross validation RandomForestRegressor
+if False:
+    skl_time=[]
 
 
+    pred_df=pd.DataFrame(columns =[0,1])
+    
+    
+    for train_index, test_index in cv.split(X_energy):
+        X_train, X_test = X_energy.iloc[train_index], X_energy.iloc[test_index]
+        y_train, y_test = y_energy.iloc[train_index], y_energy.iloc[test_index]
+        
+        
+        start=time.time()
+        mod = RandomForestRegressor()
+        mod.fit(X_train,y_train)
+        skl_pred=mod.predict(X_test)
+        skl_time.append(time.time()-start)
+        
+        
+        pred_df=pd.concat([pred_df,pd.DataFrame(list(zip(y_test,skl_pred)))],axis=0)
+    
+    pred_df.columns=["actual","sklearn_prediction"]
+    
+    pred_df=pred_df.astype(float)
+    
+    skl_mse =mean_squared_error(pred_df["sklearn_prediction"],pred_df["actual"])
+    skl_r2 =r2_score(pred_df["sklearn_prediction"],pred_df["actual"])
+    
+    pred_df["skl_dif"]=pred_df["actual"]-pred_df["sklearn_prediction"]
+    
+    sns.distplot(pred_df['skl_dif'], hist=True, kde=False, 
+                 bins=int(180/5), color = 'blue',
+                 hist_kws={'edgecolor':'black'})
+    plt.axvline(0, color='black')
+    # Add labels
+    plt.title('KNN: Histogram SKlearn Prediction')
+    plt.xlabel('Diffrence between SKlearn Prediction and Actual Observation')
+    plt.ylabel('Observations')
+    
+    plt.figure()
+    
+    
+    features = X_train.columns
+    importances = mod.feature_importances_
+    indices = np.argsort(importances)
 
+    plt.title('Feature Importances')
+    plt.barh(range(len(indices)), importances[indices], color='b', align='center')
+    plt.yticks(range(len(indices)), [features[i] for i in indices])
+    plt.xlabel('Relative Importance')
+    plt.show()
+    
+    plt.figure()
+    
+    
+# Perform cross validation SVM
+if True:
+    skl_time=[]
+
+
+    pred_df=pd.DataFrame(columns =[0,1])
+    
+    
+    for train_index, test_index in cv.split(X_energy):
+        X_train, X_test = X_energy.iloc[train_index], X_energy.iloc[test_index]
+        y_train, y_test = y_energy.iloc[train_index], y_energy.iloc[test_index]
+        
+        
+        start=time.time()
+        mod = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+        mod.fit(X_train,y_train)
+        skl_pred=mod.predict(X_test)
+        skl_time.append(time.time()-start)
+        
+        
+        pred_df=pd.concat([pred_df,pd.DataFrame(list(zip(y_test,skl_pred)))],axis=0)
+    
+    pred_df.columns=["actual","sklearn_prediction"]
+    
+    pred_df=pred_df.astype(float)
+    
+    skl_mse =mean_squared_error(pred_df["sklearn_prediction"],pred_df["actual"])
+    skl_r2 =r2_score(pred_df["sklearn_prediction"],pred_df["actual"])
+    
+    pred_df["skl_dif"]=pred_df["actual"]-pred_df["sklearn_prediction"]
+    
+    sns.distplot(pred_df['skl_dif'], hist=True, kde=False, 
+                 bins=int(180/5), color = 'blue',
+                 hist_kws={'edgecolor':'black'})
+    plt.axvline(0, color='black')
+    # Add labels
+    plt.title('KNN: Histogram SKlearn Prediction')
+    plt.xlabel('Diffrence between SKlearn Prediction and Actual Observation')
+    plt.ylabel('Observations')
+    
+    plt.figure()
+    
+    
