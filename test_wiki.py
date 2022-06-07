@@ -28,24 +28,68 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
 
-#### Dataset 2: Energy efficiency
 
-# Load data, process, potentially plot some distributions
+with open('data/wikivital_mathematics.json') as data_file:    
+    math_data = json.load(data_file)
+    
+keys = math_data.keys()
 
-df_raw = pd.read_csv('data/energy_efficiency_data.csv')
-num_entries = df_raw.shape[0]
-num_attributes = df_raw.shape[1]
+topics_id = math_data["node_ids"]
+topics = math_data["node_ids"].keys()
 
-#df_shuffeled = df_raw.sample(frac=1,random_state=42)
+X = []
+Y = []
 
-#Preprocess target: Pick one of two possible targets, mean = 0 
-X = df_raw.iloc[:,:-2]
-y = df_raw.iloc[:,-2]
-#Y = np.reshape(Y, len(Y))
-y = y - np.mean(y)
+prev_total_visitors = 0
+for day in range(int(math_data['time_periods'])):
+    day_data = math_data[str(day)]
+    
+    index = day_data['index']
+    year = day_data['year']
+    month = day_data['month']
+    date = day_data['day']
+    weekday = index % 7
+    
+    #Calculate the number of visitors this day as target + feature for next day.
+    total_visitors = 0
+    for visitors in day_data['y']:
+        total_visitors = total_visitors + int(visitors)
+    
+    #We can't use first day since 
+    if(index>0):
+        # 
+        x = [index, year, month, date]
+        
+        # One hot encode weekday
+        for i in range(7):
+            if(i == weekday):
+                x.append(1)
+            else:
+                x.append(0)
+        
+        x.append(prev_total_visitors)
+                  
+        X.append(x)
+        Y.append(total_visitors)
+        
+    prev_total_visitors = total_visitors
+
+X = np.array(X)
+Y = np.array(Y)
+
+#Preprocess features. scale to [-1, 1]
+scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
+scaler.fit(X)
+X = scaler.transform(X)
+
+#Preprocess target. Subtract mean.
+Y = Y - np.mean(Y)
 
 
+X=pd.DataFrame(X)
+y = pd.Series(Y)
 
+#y.columns="target"
 
 
 #Preprocess features. Scale all to [0,1]
@@ -71,7 +115,7 @@ pred_df=pd.DataFrame(columns =[0,1,2])
 
 
 # Perform cross validation Ridge
-if False:
+if True:
     for train_index, test_index in cv.split(X):
         
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -143,7 +187,7 @@ if False:
 
     
 # Perform cross validation KNN
-if True:
+if False:
     our_time=[]
     skl_time=[]
 
@@ -169,8 +213,6 @@ if True:
         
         
         pred_df=pd.concat([pred_df,pd.DataFrame(list(zip(y_test,our_pred,skl_pred)))],axis=0)
-        
-        sys.exi()
     
     pred_df.columns=["actual", "our_prediction","sklearn_prediction"]
     
@@ -276,7 +318,7 @@ if False:
     
     
 # Perform cross validation SVM
-if True:
+if False:
     skl_time=[]
 
 
