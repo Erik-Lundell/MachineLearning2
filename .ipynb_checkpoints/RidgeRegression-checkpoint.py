@@ -10,6 +10,15 @@ def regress(x1):
     #Return regression with current model
     #Just linear??
     return np.inner(_w, x1)
+
+
+#Calculate the actual regression at point x1
+def regress_all(X):
+    predictions=[]
+    #Return regression with current model
+    for x1 in X:
+        predictions.append(regress(x1))
+    return predictions
     
 
 #Calculate the partial derivative of the regression at point x1 with respect to weight
@@ -61,9 +70,14 @@ def grad_descent_iteration(x,y, lambda_parameter, learning_rate):
     for i in range(len(_w)):
         new_w[i] = _w[i] - learning_rate*pd_cost_function(x,y,lambda_parameter, i)
         
+    
     #Update all weights simultanously (pocket old weights)
+    dw = np.array(new_w) - np.array(_w)
+    
     _w_old = _w
     _w = new_w
+    
+    return dw
 
 # Fits the model using RidgeRegression. Stops when cost_function  
 def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights = None, max_iter = 200, weight_threshold = 0.01, quiet = False):
@@ -80,9 +94,24 @@ def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights 
     print(f"Initial cost:{old_cost:.2f}")
  
     iter_counter = 0
+    
+    old_dw = None
+    alignment = []
+    sizes = []
+    
     while(True):
         iter_counter = iter_counter + 1
-        grad_descent_iteration(x,y,lambda_parameter, learning_rate)
+        
+        dw = grad_descent_iteration(x,y,lambda_parameter, learning_rate)
+        size = np.sqrt(np.inner(dw,dw))
+        dw = dw / size
+        
+        if(not old_dw is None):
+            alignment.append(np.inner(dw,old_dw))
+            sizes.append(size)
+            
+        old_dw = dw
+        
         new_cost = cost_function(x,y, lambda_parameter)
         
         improvement_absolute = old_cost-new_cost
@@ -133,3 +162,5 @@ def fit(x,y, lambda_parameter, learning_rate, epsilon = 0.0001, initial_weights 
         print("L2-norm of weights: " + str(np.sqrt(np.inner(_w,_w))))
         print(f"RSS split of cost: {finalRSS/finalCost*100:.2f}%")
         print(f"Mean residual: {finalMeanResidual}, compare to difference between max and min y: {diffY}")
+        
+    return alignment, sizes
